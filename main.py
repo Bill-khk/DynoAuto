@@ -5,14 +5,14 @@ from PIL import Image
 from pynput import keyboard
 
 
-# TODO adjust screen size
 def take_screen(option):
     global game_time
-    distance = int(200 + (round(game_time/8, 0)*30))
+    distance = int(240 + (round(game_time/8, 0)*30))
     if option:
         pyautogui.screenshot('jump.png', region=(distance, 600, distance, 300))
     else:
         pyautogui.screenshot('screen.png', region=(distance, 600, distance, 300))
+        print(f'Distance:{distance}')
 
 
 def get_grey_value(option):
@@ -63,7 +63,7 @@ def play():
         # Start taking screen
         take_screen(False)
         get_grey_value(False)
-        time.sleep(0.1)
+        time.sleep(0.05)
 
 
 def count_time():
@@ -78,6 +78,23 @@ test = False
 playing = True
 game_time = 0
 
+# ---------------- Test ----------------------- Code use to display where the screenshot is going to be taken
+# import tkinter as tk
+# x, y = 200, 600
+# width, height = 200, 300
+# root = tk.Tk()
+# root.attributes("-topmost", True)       # Always on top
+# root.overrideredirect(True)            # No window borders
+# root.geometry(f"{width}x{height}+{x}+{y}")       # Size and position
+# root.wm_attributes("-transparentcolor", "white")
+# root.configure(bg='white')  # Set background to match transparency
+# canvas = tk.Canvas(root, width=width, height=height, highlightthickness=0)
+# canvas.pack()
+# root.mainloop()
+# ---------------- Main function -----------------------
+
+# TODO manage flying bird and ducking
+# TODO Make ESC stop the other thread
 if __name__ == "__main__":
     # creating processes
     p1 = multiprocessing.Process(target=play)
