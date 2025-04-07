@@ -1,18 +1,18 @@
-import multiprocessing
+import threading
 import pyautogui
 import time
 from PIL import Image
 from pynput import keyboard
 
-
+#Game URL=https://elgoog.im/dinosaur-game/
 def take_screen(option):
     global game_time
-    distance = int(240 + (round(game_time/8, 0)*30))
+    distance = int(240 + (round(game_time / 8, 0) * 30)) # TODO Try to change the distance based on the number of jump instead ?
     if option:
         pyautogui.screenshot('jump.png', region=(distance, 600, distance, 300))
     else:
         pyautogui.screenshot('screen.png', region=(distance, 600, distance, 300))
-        print(f'Distance:{distance}')
+        # print(f'Distance:{distance}') # Used to see the translation of the screenshot
 
 
 def get_grey_value(option):
@@ -24,15 +24,22 @@ def get_grey_value(option):
 
     pixel_nb = 0
     total_value = 0
+    top_value = 0
+    bot_value = 0
     for x in range(width):
         for y in range(height):
             total_value += pil_img.getpixel((x, y))
+            if y >= height / 2:
+                top_value += pil_img.getpixel((x, y))
+            else:
+                bot_value += pil_img.getpixel((x, y))
             pixel_nb += 1
     mean_black = int(total_value / pixel_nb)
     print(mean_black)
     if mean_black < 251:
         global test
         if not test:
+            print(f'Jump, mb={mean_black}, top_value={top_value}, bo_value={bot_value}') # Check behavior based on top_value and bot_value
             jump()
 
 
@@ -40,18 +47,17 @@ def jump():
     pyautogui.press('space')
 
 
-# The on_press listener is used to set up the program.
-def on_press(key):
-    global playing
-    if key == keyboard.Key.space:
-        print('Space')
-        take_screen(True)
-        get_grey_value(True)
-    elif key == keyboard.Key.esc:
-        playing = False
-
-
 def keyboard_listener():
+    def on_press(key):
+        global playing
+        if key == keyboard.Key.space:
+            print('Space')
+            take_screen(True)
+            get_grey_value(True)
+        elif key == keyboard.Key.esc:
+            playing = False
+            return False
+
     with keyboard.Listener(
             on_press=on_press) as listener:
         listener.join()
@@ -63,7 +69,6 @@ def play():
         # Start taking screen
         take_screen(False)
         get_grey_value(False)
-        time.sleep(0.05)
 
 
 def count_time():
@@ -94,17 +99,16 @@ game_time = 0
 # ---------------- Main function -----------------------
 
 # TODO manage flying bird and ducking
-# TODO Make ESC stop the other thread
 if __name__ == "__main__":
     # creating processes
-    p1 = multiprocessing.Process(target=play)
-    p2 = multiprocessing.Process(target=keyboard_listener)
-    p3 = multiprocessing.Process(target=count_time)
+    t1 = threading.Thread(target=play)
+    t2 = threading.Thread(target=keyboard_listener)
+    t3 = threading.Thread(target=count_time)
 
-    p1.start()
-    p2.start()
-    p3.start()
+    t1.start()
+    t2.start()
+    t3.start()
 
-    p1.join()
-    p2.join()
-    p3.join()
+    t1.join()
+    t2.join()
+    t3.join()
